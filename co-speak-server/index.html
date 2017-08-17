@@ -1,0 +1,149 @@
+<html>
+
+  <head>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-latest.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+
+    <script>
+      var socket = io();
+
+      var entered = 0;
+      var advancable = 0;
+      
+      var opacity_low = 0.4;
+      var opacity_high = 1.0;
+     
+      /* Make sure the client knows whether it's a duck or a goose. 
+       * Only give options if it's a goose.
+      */
+      socket.on('duckduckgoose', function(ddg_string) {
+        $('#duckduckgoose').html(ddg_string);
+        if(ddg_string=="goose"){
+          advancable = 1;
+          $("#button-advance").css({ opacity: opacity_high });
+        } else { // if ddg = duck, inactive, or standby
+          advancable = 0;
+          $("#button-advance").css({ opacity: opacity_low });
+        }
+      });
+
+      socket.on('displaymessage', function(displaymessage_string) {
+        $('#displaymessage').html(displaymessage_string);
+      });
+
+      socket.on('textinfo', function(textinfo_string) {
+        console.log(textinfo_string);
+        var textinfo_string_formatted = "";
+        if(textinfo_string!="-"){
+          var textinfo_string_json = JSON.parse(textinfo_string);
+          textinfo_string_formatted = textinfo_string_json.name + " by " + textinfo_string_json.author + " on " + textinfo_string_json.date;
+        } else {
+          textinfo_string_formatted = textinfo_string;
+        }
+        $('#textinfo').html(textinfo_string_formatted);
+      });
+
+      $(document).ready(function() {
+
+        $("#button-join").css({ opacity: opacity_high });
+        $("#button-leave").css({ opacity: opacity_low });
+        $("#button-advance").css({ opacity: opacity_low });
+
+/*
+        var publicIP;
+        $.getJSON("https://api.ipify.org?format=jsonp&callback=?",
+          function(json) {
+            publicIP = json.ip;
+          }
+        );
+*/
+
+        $("#button-join").click( function() {
+          if(entered == 0){
+            socket.emit('join', 'join-1', function(data) {
+              if(data == 1) { // important to wait for response from server!
+                entered = 1;
+                $("#button-join").css({ opacity: opacity_low });
+                $("#button-leave").css({ opacity: opacity_high });
+                $("#button-advance").css({ opacity: opacity_low });
+              } else {
+                console.log("error A")
+              }
+            });
+          }
+        });
+
+        $("#button-leave").click( function() {
+          if(entered == 1){
+            socket.emit('leave', 'leave-1', function(data) {
+              if(data == 1) {
+                entered = 0;
+                $("#button-join").css({ opacity: opacity_high });
+                $("#button-leave").css({ opacity: opacity_low });
+                $("#button-advance").css({ opacity: opacity_low });
+                $('#textinfo').html("-");
+             } else {
+                console.log("error B")
+              }
+            });
+          }
+        });
+
+        $("#button-advance").click( function() {
+          if( (entered == 1) && (advancable == 1) ){
+            socket.emit('advance', 'advance-1', function(data) {
+              if(data != 1) {
+                console.log("error C")
+              }
+            });
+
+          }
+        });
+      });
+    </script>
+
+    <style>
+      body{
+
+      }
+      .button {
+        width:80px;
+        border: 1px solid black;
+
+        text-align:center;
+        cursor: pointer;
+      }
+      .noselect {
+  -webkit-touch-callout: none; /* iOS Safari */
+     -webkit-user-select: none; /* Safari */
+      -khtml-user-select: none; /* Konqueror HTML */
+        -moz-user-select: none; /* Firefox */
+         -ms-user-select: none; /* Internet Explorer/Edge */
+             user-select: none; /* Non-prefixed version, currently
+                                    supported by Chrome and Opera */
+      }
+    </style>
+
+  </head>
+
+  <body>
+
+    ddg: <span id="duckduckgoose">-</span>
+      <br>
+    displaymessage: <span id="displaymessage">-</span>
+      <br>
+      <br>
+    <div class="button noselect" id="button-join" data-role="button">Join</div>
+      <br>
+    <div class="button noselect" id="button-leave" data-role="button">Leave</div>
+      <br>
+    <div class="button noselect" id="button-advance" data-role="button">Advance</div>
+      <br>
+      <br>
+    <div id="textinfo">-</div>
+
+  </body>
+
+</html>

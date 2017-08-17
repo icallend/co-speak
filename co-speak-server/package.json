@@ -1,0 +1,19 @@
+{
+  "name": "co-speak",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "Ian Callender",
+  "license": "ISC",
+  "engines": {
+    "node": "7.8.0"
+  },
+  "dependencies": {
+    "express": "4.15.2",
+    "socket.io": "2.0.1"
+  }
+}
